@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login/Signup & Reset Password</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: 300px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        input[type="password"] {
+            width: calc(100% - 12px);
+            padding: 6px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .warning {
+            color: red;
+            text-align: center;
+        }
+
+        .link {
+            display: block;
+            text-align: center;
+            margin-top: 10px;
+            cursor: pointer;
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Login/Signup Form -->
+    <div id="loginForm">
+        <h2>Login/Signup</h2>
+        
+        <!-- Google Sign-In Button -->
+        <div class="g_id_signin"
+            data-type="standard"
+            data-size="large"
+            data-theme="outline"
+            data-text="sign_in_with"
+            data-shape="rectangular"
+            data-logo_alignment="left">
+        </div>
+
+        <form id="phoneForm" style="margin-top:20px;">
+            <div class="form-group">
+                <label for="phone">Phone Number:</label>
+                <input type="tel" id="phone" name="phone" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="button" onclick="phoneLogin()">Login</button>
+        </form>
+
+        <p class="link" onclick="showResetPasswordForm()">Forgot your password? Reset here</p>
+    </div>
+
+    <!-- Reset Password Form -->
+    <div id="resetPasswordForm" style="display: none;">
+        <h2>Reset Password</h2>
+        <form id="resetForm">
+            <div class="form-group">
+                <label for="identifier">Email or Phone Number:</label>
+                <input type="text" id="identifier" name="identifier" required>
+            </div>
+            <button type="button" onclick="requestReset()">Request Reset</button>
+            <button type="button" onclick="generatePassword()">Generate Password</button>
+            <p id="warning" class="warning" style="display:none;"></p>
+        </form>
+        <p class="link" onclick="showLoginForm()">Back to Login</p>
+    </div>
+</div>
+
+<script>
+    // Toggle between login/signup and reset password forms
+    function showResetPasswordForm() {
+        document.getElementById('loginForm').style.display = 'none';
+        document.getElementById('resetPasswordForm').style.display = 'block';
+    }
+
+    function showLoginForm() {
+        document.getElementById('resetPasswordForm').style.display = 'none';
+        document.getElementById('loginForm').style.display = 'block';
+    }
+
+    // Handle phone number login
+    function phoneLogin() {
+        const phone = document.getElementById('phone').value;
+        const password = document.getElementById('password').value;
+
+        // Simulate phone login/signup (you should replace this with your backend logic)
+        console.log("Phone login/signup: Phone Number: " + phone + ", Password: " + password);
+
+        // Example: Simulate incorrect password scenario
+        if (password !== "correctPassword") {
+            alert("Password is incorrect.");
+        } else {
+            alert("Logged in successfully!");
+        }
+    }
+
+    // Placeholder Google Sign-In logic (you will need to replace this with actual Google OAuth logic)
+    function handleCredentialResponse(response) {
+        console.log("Google Sign-In response: ", response);
+        // You can handle the Google token and send it to your server for authentication
+    }
+
+    // Initialize Google Sign-In
+    window.onload = function() {
+        google.accounts.id.initialize({
+            client_id: "YOUR_GOOGLE_CLIENT_ID", // Replace with your Google client ID
+            callback: handleCredentialResponse
+        });
+        google.accounts.id.renderButton(
+            document.querySelector(".g_id_signin"),
+            {
+                theme: "outline",
+                size: "large",
+                shape: "rectangular",
+                text: "signin_with",
+                logo_alignment: "left"
+            }
+        );
+    };
+
+    // Handle password reset
+    let lastResetRequest = localStorage.getItem('lastResetRequest');
+    let requestCount = localStorage.getItem('requestCount') || 0;
+    const warningElement = document.getElementById('warning');
+
+    function requestReset() {
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+        if (lastResetRequest && new Date(parseInt(lastResetRequest)) >= today) {
+            if (parseInt(requestCount) >= 1) {
+                warningElement.textContent = "You can only request a password reset once per day.";
+                warningElement.style.display = 'block';
+                return;
+            }
+        }
+
+        const identifier = document.getElementById('identifier').value;
+
+        // Basic validation: Check if the identifier is a valid email or phone number
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const phonePattern = /^[0-9]{10}$/;
+
+        if (!identifier || (!emailPattern.test(identifier) && !phonePattern.test(identifier))) {
+            return res.status(400).json({ error: 'Invalid identifier (must be a valid email or phone number)' });
+        }
+
+        // Simulate sending reset request (replace with actual backend logic)
+        console.log("Reset request sent to:", identifier);
+
+        localStorage.setItem('lastResetRequest', now.getTime().toString());
+        localStorage.setItem('requestCount', parseInt(requestCount) + 1);
+
+        warningElement.textContent = "Reset link sent! Please check your email or phone.";
+        warningElement.style.display = 'block';
+
+        setTimeout(() => {
+            warningElement.style.display = 'none';
+        }, 5000); // Hide message after 5 seconds
+    }
+
+    function generatePassword() {
+        const length = 12; // Password length
+        let result = '';
+        const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+        const numbers = '0123456789';
+        const specialChars = '!@#$%^&*()_+[]{}|;:,.<>?';
+
+        const allChars = uppercase + lowercase + numbers + specialChars;
+
+        for (let i = 0; i < length; i++) {
+            result += allChars.charAt(Math.floor(Math.random() * allChars.length));
+        }
+
+        alert("Generated Password: " + result);
+    }
+
+    // Reset request count at the start of each day
+    function resetDailyRequestCount() {
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        if (lastResetRequest && new Date(parseInt(lastResetRequest)) < today) {
+            localStorage.setItem('requestCount', 0);
+        }
+    }
+
+    resetDailyRequestCount();
+</script>
+
+</body>
+</html>
